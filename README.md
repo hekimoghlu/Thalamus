@@ -4,8 +4,8 @@
  
 **Authors.** Tunjay Akbarli¹, Parvin Akbarov²
  
-¹ Chief Architect, Omnira CJSC, Baku, Azerbaijan
-² Neurological rehabilitation, Baku, Azerbaijan · MSc Healthcare Administration, Johns Hopkins University, Baltimore, MD, USA
+- ¹ Chief Architect, Omnira CJSC, Baku, Azerbaijan
+- ² MSc Healthcare Administration, Johns Hopkins University, Baltimore, MD, USA
  
 **Correspondence.** T.A.: tunjay.akbarli@theomnira.com
 
