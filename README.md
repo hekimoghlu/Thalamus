@@ -7,7 +7,7 @@
 ¹ Chief Architect, Omnira CJSC, Baku, Azerbaijan
 ² Neurological rehabilitation, Baku, Azerbaijan · MSc Healthcare Administration, Johns Hopkins University, Baltimore, MD, USA
  
-**Correspondence.** T.A.: tunjay.akbarli@theomnira.com · P.A.: pakbaro1@jh.edu
+**Correspondence.** T.A.: tunjay.akbarli@theomnira.com
 
 **Background.** The device this paper is built around is an *artificial peripheral thalamus*: a cybernetic neuromorphic relay that stands in for the damaged afferent pathway after stroke, regulating the timing and fidelity of sensory feedback during active movement. A device of that kind is only as good as the answer to three questions — how much benefit is available to it at all, how fast its loop must close, and when in the recovery course its sessions should be spent. None of the three can be answered inside the rehabilitation literature, because all three are set upstream: by the flow field that decided how much cortex survived, by the cascade that decided how fast that decision was made, and by the kinetics of the sensitive period that decides what any training can still reach. We therefore built the disease model the device needs, and held both to the same standard of evidence.
  
