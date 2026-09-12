@@ -19,4 +19,4 @@
  
 **Keywords.** stroke; artificial peripheral thalamus; closed-loop rehabilitation; multi-scale modelling; spreading depolarisation; reaction–diffusion; polygenic risk; proportional recovery; stochastic optimal control; neuroprotection; reproducibility
 
-**Dataset:**https://huggingface.co/datasets/thehekimoghlu/Thalamus
+**Dataset:** https://huggingface.co/datasets/thehekimoghlu/Thalamus
