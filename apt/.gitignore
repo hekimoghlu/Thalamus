@@ -4,3 +4,4 @@ out/
 *.fst
 sim_build/
 tb/*.vvp
+tb/vectors/

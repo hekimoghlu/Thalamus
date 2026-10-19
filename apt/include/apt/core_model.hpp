@@ -70,6 +70,7 @@ enum CtrlBit : std::uint32_t {
     kCtrlPassivity = 1u << 1,
     kCtrlStim = 1u << 2,
     kCtrlTelemetry = 1u << 3,
+    kCtrlRun = 1u << 4,  // RTL only: starts the tick generator and soft-resets the datapath
 };
 
 // The physical design point a configuration is derived from. The gating parameters are the

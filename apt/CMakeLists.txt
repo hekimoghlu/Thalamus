@@ -40,9 +40,13 @@ add_library(aptcore
   src/link.cpp
   src/core_model.cpp
   src/plant.cpp
+  src/codegen.cpp
 )
 target_include_directories(aptcore PUBLIC include)
 target_compile_definitions(aptcore PRIVATE APT_SOURCE_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+
+add_executable(aptctl apps/aptctl.cpp)
+target_link_libraries(aptctl PRIVATE aptcore)
 
 # --- tests ---------------------------------------------------------------------------------
 enable_testing()

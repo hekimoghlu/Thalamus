@@ -141,7 +141,7 @@ Outputs CoreModel::step(const Inputs& in) {
         x_prev_ = x;
         primed_ = true;
     }
-    const sig_t v_raw = sat32(acc_t{sub(x, x_prev_)} * acc_t{c.fs_hz});
+    const sig_t v_raw = sat32(acc_t{sub(x, x_prev_)} * acc_t{c.fs_hz & 0xFFFFu});  // 16-bit field
     v_ = add(v_, mul_sc(sub(v_raw, v_), c.v_alpha));
     x_prev_ = x;
 
@@ -188,7 +188,8 @@ Outputs CoreModel::step(const Inputs& in) {
             if (den > 0) {
                 const std::uint64_t num = static_cast<std::uint64_t>(-acc_t{e_});
                 const std::uint64_t q = (num << kSigFrac) / static_cast<std::uint64_t>(den);
-                const sig_t alpha = q > static_cast<std::uint64_t>(c.pc_alpha_max)
+                // the ceiling compares as an unsigned 32-bit quantity, as in the RTL
+                const sig_t alpha = q > std::uint64_t{static_cast<std::uint32_t>(c.pc_alpha_max)}
                                         ? c.pc_alpha_max
                                         : static_cast<sig_t>(q);
                 f_pc = neg(mul_ss(alpha, v_));
