@@ -48,6 +48,16 @@ target_compile_definitions(aptcore PRIVATE APT_SOURCE_DATA_DIR="${CMAKE_CURRENT_
 add_executable(aptctl apps/aptctl.cpp)
 target_link_libraries(aptctl PRIVATE aptcore)
 
+# --- firmware (host build of the MCU code, tested against a register-bus mock) -------------
+add_library(aptfw fw/src/apt_hal.c fw/src/apt_link.c fw/src/apt_session.c)
+target_include_directories(aptfw PUBLIC fw/include)
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(aptfw PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wno-sign-conversion)
+endif()
+if(NOT MSVC)
+  target_link_libraries(aptfw PUBLIC m)
+endif()
+
 # --- tests ---------------------------------------------------------------------------------
 enable_testing()
 foreach(t evidence fixed physics recovery schedule dsp neuromorphic link core_model hil)
@@ -57,3 +67,6 @@ foreach(t evidence fixed physics recovery schedule dsp neuromorphic link core_mo
 endforeach()
 set_tests_properties(schedule PROPERTIES TIMEOUT 600)
 
+add_executable(test_fw fw/tests/test_fw.c fw/tests/mock_bus.c)
+target_link_libraries(test_fw PRIVATE aptfw)
+add_test(NAME firmware COMMAND test_fw)
