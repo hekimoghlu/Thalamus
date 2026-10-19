@@ -1,0 +1,7 @@
+# Yosys synthesis of the APT FPGA for a Xilinx 7-series target (resource estimate + synthesisability).
+#   yosys -s syn/synth_xc7.ys      (run from apt/)
+verilog_defaults -add -I rtl/generated
+read_verilog rtl/apt_top.v rtl/apt_core.v rtl/apt_udiv.v rtl/apt_spi_adc.v rtl/apt_quad.v rtl/apt_pwm.v rtl/apt_stim.v rtl/apt_latency.v rtl/apt_spi_slave.v rtl/apt_telemetry.v rtl/apt_uart_tx.v
+synth_xilinx -top apt_top -family xc7 -flatten
+check -assert
+tee -o syn/report_xc7.txt stat

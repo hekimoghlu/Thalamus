@@ -1,0 +1,36 @@
+name: apt-device-suite
+
+on:
+  push:
+    paths: ["apt/**", ".github/workflows/apt.yml"]
+  pull_request:
+    paths: ["apt/**", ".github/workflows/apt.yml"]
+
+jobs:
+  software:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: apt } }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build
+      - run: ctest --test-dir build --output-on-failure
+      - name: generated register map and RTL headers are up to date
+        # (the policy table and dosing constants come from floating-point models and are not
+        #  required to be bit-identical across toolchains)
+        run: build/aptctl codegen --root . && git diff --exit-code -- rtl/generated fw/include/apt_regmap.h
+      - run: build/aptctl spec --out out/spec
+      - uses: actions/upload-artifact@v4
+        with: { name: device-specification, path: apt/out/spec }
+
+  rtl:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: apt } }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build iverilog yosys
+      - run: cmake -S . -B build -G Ninja && cmake --build build --target aptctl
+      - name: bit-exact co-simulation against the golden model
+        run: scripts/sim.sh build 1200
+      - name: synthesis (Xilinx 7-series)
+        run: yosys -q -s syn/synth_xc7.ys && cat syn/report_xc7.txt

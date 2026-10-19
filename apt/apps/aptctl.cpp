@@ -56,7 +56,10 @@ Args parse(int argc, char** argv) {
     return a;
 }
 
-void section(const char* title) { std::printf("\n== %s %s\n", title, std::string(76 - std::strlen(title), '=').c_str()); }
+void section(const char* title) {
+    const std::size_t n = std::strlen(title);
+    std::printf("\n== %s %s\n", title, std::string(n < 76 ? 76 - n : 2, '=').c_str());
+}
 
 // ------------------------------------------------------------------------------------- spec
 int cmd_spec(const Args& a) {

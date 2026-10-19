@@ -20,3 +20,7 @@
 **Keywords.** stroke; artificial peripheral thalamus; closed-loop rehabilitation; multi-scale modelling; spreading depolarisation; reaction–diffusion; polygenic risk; proportional recovery; stochastic optimal control; neuroprotection; reproducibility
 
 **Dataset:** https://huggingface.co/datasets/thehekimoghlu/Thalamus
+
+## Device suite
+
+[`apt/`](apt/) implements the device this framework specifies, the Artificial Peripheral Thalamus: C++20 models that reproduce the device layer (Modules E, M and O), a bit-exact golden model of the controller datapath, synthesisable Verilog verified byte for byte against that model, and C99 supervisory firmware. See [`apt/README.md`](apt/README.md).
