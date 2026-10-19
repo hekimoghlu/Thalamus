@@ -35,13 +35,18 @@ add_library(aptcore
   src/stability.cpp
   src/recovery.cpp
   src/schedule.cpp
+  src/dsp.cpp
+  src/neuromorphic.cpp
+  src/link.cpp
+  src/core_model.cpp
+  src/plant.cpp
 )
 target_include_directories(aptcore PUBLIC include)
 target_compile_definitions(aptcore PRIVATE APT_SOURCE_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
 
 # --- tests ---------------------------------------------------------------------------------
 enable_testing()
-foreach(t physics recovery schedule)
+foreach(t evidence fixed physics recovery schedule dsp neuromorphic link core_model hil)
   add_executable(test_${t} tests/test_${t}.cpp)
   target_link_libraries(test_${t} PRIVATE aptcore)
   add_test(NAME ${t} COMMAND test_${t})

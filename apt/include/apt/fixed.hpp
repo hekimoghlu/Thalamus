@@ -6,6 +6,9 @@
 //   coef_t  Q8.24  signed 32-bit. Dimensionless gains and discrete-time coefficients.
 //   code    16-bit two's-complement ADC sample, read as a Q1.15 fraction of full scale.
 //
+// Multiplies: mul_sc (signal x coef, >>24), mul_ss (signal x signal, >>20), mul_ic (integer x
+// coef, >>4), mul_code (ADC code x full-scale signal, >>15).
+//
 // Every product is formed exactly in 64 bits, rounded once (round-half-up: add half an LSB,
 // then arithmetic shift) and saturated to 32 bits. Multi-term expressions are accumulated
 // exactly and rounded once at the end. Those three rules are the whole contract; the RTL
@@ -54,6 +57,9 @@ constexpr sig_t clamp(sig_t v, sig_t lo, sig_t hi) { return v < lo ? lo : v > hi
 constexpr sig_t mul_sc(sig_t s, coef_t c) { return rnd_sc(acc_t{s} * c); }
 // signal x signal -> signal
 constexpr sig_t mul_ss(sig_t a, sig_t b) { return rnd_ss(acc_t{a} * b); }
+// integer (e.g. an encoder count) x coefficient (units per count) -> signal: the coefficient
+// carries 24 fractional bits and the signal 20, so the product is shifted by 4
+constexpr sig_t mul_ic(std::int32_t i, coef_t c) { return sat32(round_shift(acc_t{i} * c, 4)); }
 // ADC code x full-scale (signal) -> signal
 constexpr sig_t mul_code(std::int16_t code, sig_t full_scale) {
     return sat32(round_shift(acc_t{code} * full_scale, kCodeFrac));
