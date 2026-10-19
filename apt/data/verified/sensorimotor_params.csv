@@ -1,0 +1,45 @@
+param,value,value_lo,value_hi,unit,population,src,verified,use
+haptic_delay_imperceptible,30,UNVERIFIED,UNVERIFIED,ms,healthy adults continuous haptic interaction,442,primary,design_constraint
+haptic_delay_threshold_cve,50,UNVERIFIED,UNVERIFIED,ms,collaborative virtual environments,442,primary,design_constraint
+haptic_delay_threshold_discrete,110,UNVERIFIED,UNVERIFIED,ms,healthy adults discrete haptic feedback,442,primary,design_constraint
+haptic_delay_detected_accuracy,220,UNVERIFIED,UNVERIFIED,ms,detected with 88.6 percent accuracy,442,primary,design_constraint
+haptic_delay_stiffness_bias_onset,30,UNVERIFIED,UNVERIFIED,ms,healthy operators teleoperation,443,primary,design_constraint
+stiffness_pse_0ms,1.03,0.89,1.17,ratio,healthy operators,443,primary,design_constraint
+stiffness_pse_90ms,1.23,1.12,1.34,ratio,healthy operators,443,primary,design_constraint
+agency_proportion_0ms,0.954,UNVERIFIED,UNVERIFIED,proportion reporting control,healthy adults,440,primary,design_constraint
+agency_proportion_200ms,0.126,UNVERIFIED,UNVERIFIED,proportion reporting control,healthy adults,440,primary,design_constraint
+adaptation_rate_60ms,0.128,0.101,0.155,dimensionless rate,healthy adults reaching,441,primary,model_input
+adaptation_rate_259ms,0.066,0.046,0.086,dimensionless rate,healthy adults reaching,441,primary,model_input
+adaptation_rate_after_exposure,0.094,0.076,0.112,dimensionless rate,healthy adults reaching,441,primary,model_input
+n20_latency,19.4,18.9,19.9,ms,healthy controls n=10 median nerve,444,primary,model_input
+n9_latency,9.9,9.3,10.5,ms,healthy controls n=10,444,primary,model_input
+peripheral_to_cortex_transit,9.5,UNVERIFIED,UNVERIFIED,ms,healthy controls,444,primary,model_input
+abeta_conduction_velocity,50,UNVERIFIED,UNVERIFIED,m/s,human microneurography,445,primary,model_input
+ct_afferent_conduction_velocity,1.0,0.6,1.3,m/s,human microneurography,445,primary,model_input
+weber_fraction_force,0.085,0.07,0.10,fraction,healthy adults 0.5-200 N,446,secondary,model_input
+weber_fraction_force_low_load,0.21,0.15,0.27,fraction,healthy adults below 0.5 N,446,secondary,model_input
+weber_fraction_position,0.08,0.03,0.11,fraction,healthy adults finger and elbow,446,secondary,model_input
+weber_fraction_stiffness,0.15,0.08,0.22,fraction,healthy adults,446,secondary,model_input
+position_threshold_mcp,4.4,UNVERIFIED,UNVERIFIED,degrees,healthy adults,446,secondary,model_input
+position_threshold_pip,6.8,UNVERIFIED,UNVERIFIED,degrees,healthy adults,446,secondary,model_input
+movement_threshold_slow,8,UNVERIFIED,UNVERIFIED,degrees at 1.25 deg/s,healthy index finger,446,secondary,model_input
+movement_threshold_fast,1,UNVERIFIED,UNVERIFIED,degrees at >=10 deg/s,healthy index finger,446,secondary,model_input
+jnd_elbow_torque_static,0.0975,0.097,0.098,Nm,healthy adults n=14,447,primary,model_input
+jnd_elbow_torque_preload,0.135,0.12,0.15,Nm,healthy adults with 0.89 Nm preload,447,primary,model_input
+jnd_elbow_torque_dynamic,0.32,0.219,0.428,Nm,healthy adults at ~97 deg/s,447,primary,model_input
+wrist_jnd_stroke_baseline,1.77,1.23,2.31,degrees,n=11 chronic stroke,448,primary,validation_target
+wrist_jnd_control,1.50,1.04,1.96,degrees,n=10 controls,448,primary,validation_target
+wrist_jnd_stroke_day5,1.30,1.02,1.58,degrees,n=11 after 5 days robot-aided training,448,primary,validation_target
+proprioceptive_training_responders,73,UNVERIFIED,UNVERIFIED,percent (8 of 11),chronic stroke,448,primary,validation_target
+proprioceptive_training_mean_reduction,30.2,9.3,47,percent JND reduction,chronic stroke responders,448,primary,validation_target
+ihi_sihi_isi,10,UNVERIFIED,UNVERIFIED,ms conditioning-test interval,healthy adults wrist muscles,449,primary,model_input
+ihi_lihi_isi,40,UNVERIFIED,UNVERIFIED,ms conditioning-test interval,healthy adults wrist muscles,449,primary,model_input
+ihi_gabaa_isi_stroke,8,UNVERIFIED,UNVERIFIED,ms,chronic stroke protocol,450,primary,model_input
+ihi_gabab_isi_stroke,50,UNVERIFIED,UNVERIFIED,ms,chronic stroke protocol,450,primary,model_input
+ihi_modulation_impairment_r,-0.55,UNVERIFIED,UNVERIFIED,Pearson r,n=18 chronic stroke,450,primary,validation_target
+somatosensory_gating_isi,30,UNVERIFIED,UNVERIFIED,ms,healthy adults median nerve,451,primary,model_input
+somatosensory_gating_ratio_healthy,0.4,UNVERIFIED,UNVERIFIED,second/first response ratio,healthy adults,451,primary,model_input
+monofilament_normal_max,0.068,0.0045,0.068,grams force,hand green filaments 1.65-2.83,452,secondary,threshold
+monofilament_diminished_light_touch,0.408,0.166,0.408,grams force,blue filaments 3.22-3.61,452,secondary,threshold
+monofilament_diminished_protective,2.06,0.697,2.06,grams force,purple filaments 3.84-4.31,452,secondary,threshold
+monofilament_loss_protective,447,3.63,447,grams force,red filaments 4.56-6.65,452,secondary,threshold

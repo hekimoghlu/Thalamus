@@ -1,0 +1,27 @@
+{
+  "recovery_parameters": {
+    "eta_fast": 0.08473041655224377,
+    "tau_fast": 3.0,
+    "eta_slow": 0.03556893304490065,
+    "tau_slow": 55.5,
+    "floor": 0.002845514643592052
+  },
+  "plasticity_floor_ratio": 0.08,
+  "gradient_fit_residual": 3.314294022906449e-05,
+  "weekly_gain_relative_rms": 0.01757811595771557,
+  "prr_slope_range": [
+    0.17343759620145915,
+    0.30143640109101755
+  ],
+  "k_range": [
+    0.2544240391787136,
+    0.7062041361015823
+  ],
+  "n_prr_targets_overlapping": 2,
+  "n_prr_targets": 5,
+  "max_joint_prr_targets_met": 4,
+  "joint_best_cap_sd": [
+    0.3,
+    0.45
+  ]
+}

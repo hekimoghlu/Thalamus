@@ -1,0 +1,85 @@
+benchmark,value,value_lo,value_hi,unit,population,src,verified,use_as
+prr_slope_original,0.70,UNVERIFIED,UNVERIFIED,fraction of impairment lost,n=41 ischemic stroke FMA-UE,401,primary,validation_target
+prr_slope_range_lo,0.55,UNVERIFIED,UNVERIFIED,fraction,across 8 cohorts,402,primary,validation_target
+prr_slope_range_hi,0.85,UNVERIFIED,UNVERIFIED,fraction,across 8 cohorts,402,primary,validation_target
+prr_r2_dataset1,0.55,UNVERIFIED,UNVERIFIED,R2,Stinear and Byblow cohort,403,primary,validation_target
+prr_r2_dataset2,0.56,UNVERIFIED,UNVERIFIED,R2,Zarahn cohort,403,primary,validation_target
+prr_r2_dataset3,0.35,UNVERIFIED,UNVERIFIED,R2,Winters cohort,403,primary,validation_target
+variance_ratio_k_sb,0.39,0.27,0.54,ratio,Stinear and Byblow cohort,403,primary,validation_target
+variance_ratio_k_winters,0.07,0.05,0.09,ratio,Winters cohort,403,primary,validation_target
+variance_ratio_k_zarahn,0.13,0.03,0.24,ratio,Zarahn cohort,403,primary,validation_target
+cor_xy_sb,0.73,0.66,0.79,Pearson r,Stinear and Byblow cohort,403,primary,validation_target
+cor_xy_winters,0.59,0.49,0.69,Pearson r,Winters cohort,403,primary,validation_target
+cor_xy_zarahn,0.75,0.55,0.92,Pearson r,Zarahn cohort,403,primary,validation_target
+nonfitter_fraction_winters,31,UNVERIFIED,UNVERIFIED,percent,EPOS n=211,402,primary,validation_target
+nonfitter_fraction_zarahn,27,UNVERIFIED,UNVERIFIED,percent,n=94,402,primary,validation_target
+nonfitter_fraction_stinear,13,UNVERIFIED,UNVERIFIED,percent,n=157,402,primary,validation_target
+fm_gain_week0_2,6.886,UNVERIFIED,UNVERIFIED,FM-UE points,first-ever stroke,408,primary,validation_target
+fm_gain_week2_4,3.844,UNVERIFIED,UNVERIFIED,FM-UE points,first-ever stroke,408,primary,validation_target
+fm_gain_week4_6,2.584,UNVERIFIED,UNVERIFIED,FM-UE points,first-ever stroke,408,primary,validation_target
+fm_total_recovery_units,26.2,UNVERIFIED,UNVERIFIED,FM-UE points,first-ever stroke,408,primary,validation_target
+fraction_recovery_by_4months,90,UNVERIFIED,UNVERIFIED,percent of total,first-ever stroke,408,primary,validation_target
+plateau_mild,6.5,UNVERIFIED,UNVERIFIED,weeks post-stroke,mild hemiparesis,409,secondary,validation_target
+plateau_severe,15,UNVERIFIED,UNVERIFIED,weeks post-stroke,severe hemiparesis,409,secondary,validation_target
+window_gradient_subacute,5.2,4.2,6.2,percent UE-FM per week of treatment,subacute ~10.3 weeks,409,primary,validation_target
+window_gradient_early_chronic,2.7,2.1,3.3,percent per week,6-18 months,409,primary,validation_target
+window_gradient_late_chronic,1.4,1.1,1.7,percent per week,>18 months,409,primary,validation_target
+cpass_arat_subacute,6.87,UNVERIFIED,UNVERIFIED,ARAT points at 1 y vs control,60-90 days window (SE 2.63 p=0.009),410,primary,validation_target
+cpass_arat_acute,5.25,UNVERIFIED,UNVERIFIED,ARAT points,<=30 days window (SE 2.59 p=0.043),410,primary,validation_target
+cpass_arat_chronic,2.41,UNVERIFIED,UNVERIFIED,ARAT points,>=6 months window (SE 2.25 p=0.29),410,primary,validation_target
+persistent_ul_impairment_6mo,50,UNVERIFIED,UNVERIFIED,percent,stroke survivors,416,secondary,validation_target
+dexterity_regained_mild_moderate,71,UNVERIFIED,UNVERIFIED,percent,mild-moderate UL paresis at 6 months,412,secondary,validation_target
+no_dexterity_severe,60,UNVERIFIED,UNVERIFIED,percent,severe initial UL paresis at 6 months,412,secondary,validation_target
+functional_use_complete_paralysis,5,UNVERIFIED,UNVERIFIED,percent,complete initial paralysis,412,secondary,validation_target
+full_arat_recovery,34,UNVERIFIED,UNVERIFIED,percent reaching ARAT 57/57,first-ever stroke,407,secondary,validation_target
+prep2_accuracy_dev,75,UNVERIFIED,UNVERIFIED,percent correct,n=207 development cohort,413,primary,validation_target
+prep2_accuracy_2y,80,UNVERIFIED,UNVERIFIED,percent correct,n=86 at 2 years,414,primary,validation_target
+prep2_accuracy_external,60,50,71,percent correct,n=91 applied at 2 weeks,415,primary,validation_target
+safe_ppv,0.93,0.88,0.96,PPV,EPOS n=188,407,secondary,validation_target
+safe_npv,0.86,0.77,0.93,NPV,EPOS n=188,407,secondary,validation_target
+fmue_mcid,5.25,UNVERIFIED,UNVERIFIED,FM-UE points,chronic ischemic stroke n=146,417,secondary,threshold
+fmue_mdc,5.2,UNVERIFIED,UNVERIFIED,FM-UE points,chronic stroke n=14,417,secondary,threshold
+fmue_icc_interrater,0.99,0.97,1.00,ICC,acute stroke n=15,417,secondary,measurement
+arat_mcid_chronic,5.7,UNVERIFIED,UNVERIFIED,ARAT points,chronic stroke,418,secondary,threshold
+arat_mcid_acute,12,UNVERIFIED,UNVERIFIED,ARAT points,acute stroke dominant affected,418,secondary,threshold
+arat_mdc90,3.0,UNVERIFIED,UNVERIFIED,ARAT points,stroke,418,secondary,threshold
+bbt_mdc,5.5,4,6,blocks/min,acute and chronic stroke,419,secondary,threshold
+bbt_norm_men_40_75,73,63,83,blocks/min right hand,healthy adults,419,secondary,normative
+bbt_norm_women_40_75,73,65,81,blocks/min right hand,healthy adults,419,secondary,normative
+wmft_mcid_fas,1.0,UNVERIFIED,UNVERIFIED,FAS points,acute stroke n=52,420,secondary,threshold
+wmft_mcid_time,-19.0,UNVERIFIED,UNVERIFIED,seconds,acute stroke n=52,420,secondary,threshold
+abilhand_mcid,0.305,0.26,0.35,logits,stroke n=51,421,secondary,threshold
+grip_mcid_dominant,5.0,UNVERIFIED,UNVERIFIED,kg,acute stroke n=52,422,secondary,threshold
+grip_mdc,6.0,UNVERIFIED,UNVERIFIED,kg,healthy adults,422,secondary,threshold
+grip_norm_men_60_69,40,UNVERIFIED,UNVERIFIED,kg right hand,community adults,422,secondary,normative
+grip_norm_women_60_69,24,UNVERIFIED,UNVERIFIED,kg right hand,community adults,422,secondary,normative
+robot_smd_arm_function,0.32,0.18,0.46,SMD,41 studies 1452 participants GRADE high,424,primary,validation_target
+robot_smd_adl,0.31,0.09,0.52,SMD,24 studies 957 participants GRADE high,424,primary,validation_target
+robot_smd_strength,0.46,0.16,0.77,SMD,23 studies 826 participants GRADE high,424,primary,validation_target
+cimt_smd_motor_function,0.34,0.12,0.55,SMD,28 studies 858 participants,426,primary,validation_target
+cimt_smd_impairment,0.82,0.31,1.34,SMD,16 studies 372 participants,426,primary,validation_target
+cimt_smd_disability,0.24,-0.05,0.52,SMD,11 studies 344 participants (NS),426,primary,validation_target
+excite_wmft_time_diff,34,12,51,percent between-group,n=222 EXCITE trial,427,primary,validation_target
+mirror_smd_motor_function,0.47,0.27,0.67,SMD,36 studies 1173 participants GRADE moderate,433,primary,validation_target
+mirror_smd_impairment,0.49,0.32,0.66,SMD,39 studies 1292 participants,433,primary,validation_target
+fes_smd_fmue,0.53,0.10,0.96,SMD,8 RCTs 384 participants,434,primary,validation_target
+bilateral_md_fmue,2.21,0.12,4.30,FM-UE points,16 trials 842 participants,435,primary,validation_target
+bci_smd_fmue,0.49,0.26,0.73,SMD,16 RCTs 1761 participants,436,primary,validation_target
+bci_smd_subacute,0.62,0.20,1.04,SMD,subacute subgroup,436,primary,validation_target
+bci_smd_chronic,0.40,0.08,0.72,SMD,chronic subgroup,436,primary,validation_target
+vns_fmue_day1,2.6,1.03,4.2,FM-UE points between-group,n=108 VNS-REHAB,437,primary,validation_target
+vns_fmue_day90,3.0,0.8,5.1,FM-UE points between-group,n=108 VNS-REHAB,437,primary,validation_target
+vns_fm_sd_treatment,4.4,UNVERIFIED,UNVERIFIED,FM-UE points (within-group SD),n=53 VNS arm,437,primary,model_input
+vns_fm_sd_control,3.8,UNVERIFIED,UNVERIFIED,FM-UE points (within-group SD),n=55 control arm,437,primary,model_input
+vns_responder_diff,24,6,41,percent achieving >=6 FM-UE points,n=108 VNS-REHAB,437,primary,validation_target
+sensory_retraining_md_fm,5.93,5.17,6.70,FM points,13 comparisons 385 participants,438,primary,validation_target
+sensory_stimulation_md_fm,2.75,1.53,3.96,FM points,38 trials 1093 participants,438,primary,validation_target
+sensory_stimulation_md_arat,2.80,2.27,3.32,ARAT points,38 trials 1093 participants,438,primary,validation_target
+rpms_md_fmue,3.34,0.53,6.15,FM-UE points,7 trials 290 participants,439,primary,validation_target
+dose_fm_gain_increased_duration,6.73,1.66,11.80,FM points,1 multi-arm trial 25 participants GRADE low,430,primary,validation_target
+dose_arat_ge200pct,13.86,3.43,24.29,ARAT points,2 studies 23 participants,430,primary,validation_target
+dose_arat_50_100pct,0.29,-6.79,7.38,ARAT points,2 studies 39 participants,430,primary,validation_target
+reps_usual_care,32,UNVERIFIED,UNVERIFIED,active UL movements per session,inpatient stroke rehab,429,secondary,model_input
+reps_high_dose_protocol,322,UNVERIFIED,UNVERIFIED,repetitions per 1-hour session,chronic stroke n=13,428,primary,model_input
+reps_high_dose_arat_gain,8,UNVERIFIED,UNVERIFIED,ARAT points,chronic stroke n=13,428,primary,validation_target
+daly_300h_fm_gain,10,UNVERIFIED,UNVERIFIED,FM points for 300 h program,chronic stroke,429,secondary,validation_target

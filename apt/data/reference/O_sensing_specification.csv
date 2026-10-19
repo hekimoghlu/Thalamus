@@ -1,0 +1,7 @@
+channel,biological_resolution,unit,basis,required_bits,bits_per_second_at_30_hz
+grip force,3.4000000000000004,kg at a 40 kg reference,verified force Weber fraction x verified norm,3.5563933485243853,106.69180045573155
+"elbow torque, static",0.0975,N m,verified just-noticeable difference,3.358453970912476,100.75361912737428
+"elbow torque, dynamic",0.32,N m,verified just-noticeable difference,1.6438561897747246,49.31568569324174
+finger joint angle (MCP),4.4,degrees,verified position threshold,4.35434957257974,130.6304871773922
+finger joint angle (PIP),6.8,degrees,verified position threshold,3.726318349966698,111.78955049900094
+stiffness,0.15,fraction,verified stiffness Weber fraction,2.736965594166206,82.10896782498618
