@@ -1,0 +1,33 @@
+
+14. Printing statistics.
+
+=== apt_top ===
+
+        +----------Local Count, excluding submodules.
+        | 
+    11636 wires
+    33404 wire bits
+      383 public wires
+     8731 public wire bits
+       24 ports
+       61 port bits
+    18080 cells
+       13   $scopeinfo
+        1   BUFG
+      554   CARRY4
+        5   DSP48E1
+        2   FDPE
+     7910   FDRE
+      553   FDSE
+       10   IBUF
+      441   INV
+        2   LUT1
+     1215   LUT2
+      673   LUT3
+     1201   LUT4
+     3278   LUT5
+     2091   LUT6
+       54   MUXF7
+       26   MUXF8
+       51   OBUF
+

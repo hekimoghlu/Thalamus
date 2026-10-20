@@ -1,0 +1,24 @@
+{
+  "dose_exponent_gamma": 1.0441916647711613,
+  "afferent_rate_biological_bit_s": 213.6951808296362,
+  "afferent_rate_device_bit_s": 657.9470678999368,
+  "device_to_biological_rate_ratio": 3.07890456558527,
+  "cortical_arrival_latency_ms": 19.4,
+  "learning_half_rate_latency_ms": 152.0516129032258,
+  "learning_rate_at_zero_delay": 0.17850916496945013,
+  "max_stable_stiffness_at_1ms": 20000.0,
+  "max_stable_stiffness_at_110ms": 0.0,
+  "pooled_sd_used_for_smd": 4.110960958218893,
+  "matched_dose_smd_range": [
+    -0.5259370710677317,
+    0.28827338975744715
+  ],
+  "dose_amplified_smd_range": [
+    1.5061559339945716,
+    2.337005370117972
+  ],
+  "published_matched_dose_smd_range": [
+    0.32,
+    1.4424851172921915
+  ]
+}

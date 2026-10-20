@@ -1,0 +1,9 @@
+build*/
+out/
+*.vcd
+*.fst
+sim_build/
+tb/*.vvp
+tb/vectors/
+.claude-flow/
+".claude-flow/"  
