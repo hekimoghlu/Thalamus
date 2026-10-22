@@ -41,6 +41,7 @@ add_library(aptcore
   src/core_model.cpp
   src/plant.cpp
   src/adapt.cpp
+  src/twin.cpp
   src/codegen.cpp
 )
 target_include_directories(aptcore PUBLIC include)
@@ -61,7 +62,7 @@ endif()
 
 # --- tests ---------------------------------------------------------------------------------
 enable_testing()
-foreach(t evidence fixed physics recovery schedule dsp neuromorphic link core_model hil adapt)
+foreach(t evidence fixed physics recovery schedule dsp neuromorphic link core_model hil adapt twin)
   add_executable(test_${t} tests/test_${t}.cpp)
   target_link_libraries(test_${t} PRIVATE aptcore)
   add_test(NAME ${t} COMMAND test_${t})

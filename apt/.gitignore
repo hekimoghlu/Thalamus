@@ -7,3 +7,4 @@ tb/*.vvp
 tb/vectors/
 .claude-flow/
 ".claude-flow/"  
+formal/*/

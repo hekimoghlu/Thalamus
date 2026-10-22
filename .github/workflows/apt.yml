@@ -34,3 +34,16 @@ jobs:
         run: scripts/sim.sh build 1200
       - name: synthesis (Xilinx 7-series)
         run: yosys -q -s syn/synth_xc7.ys && cat syn/report_xc7.txt
+
+  formal:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: apt } }
+    steps:
+      - uses: actions/checkout@v4
+      - name: install SymbiYosys, Yosys and z3
+        run: |
+          sudo apt-get update && sudo apt-get install -y yosys z3
+          # SymbiYosys from source (the distro package may lag the yosys it must match)
+          git clone --depth 1 https://github.com/YosysHQ/sby /tmp/sby && sudo make -C /tmp/sby install
+      - name: unbounded safety proofs (charge balance, H-bridge, e-stop chain, divider)
+        run: scripts/formal.sh sby
