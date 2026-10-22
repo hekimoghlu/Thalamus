@@ -1,0 +1,13 @@
+[tasks]
+prove
+[options]
+mode prove
+depth 2
+[engines]
+smtbmc z3
+[script]
+read_verilog -formal -DFORMAL apt_udiv.v
+chparam -set N 8 -set M 4 apt_udiv
+prep -top apt_udiv
+[files]
+../rtl/apt_udiv.v

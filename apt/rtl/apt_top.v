@@ -159,13 +159,14 @@ module apt_top #(
 
     // ------------------------------------------------------------------ actuation
     wire pwm_loaded;
-    wire drive_en = core_active && !core_fault && !estop_now;  // e-stop acts within 2 clocks
+    wire drive_en, stim_en;
+    apt_interlock u_ilk (.core_active(core_active), .core_fault(core_fault), .estop(estop_now),
+                         .stim_ctrl(ctrl[2]), .drive_en(drive_en), .stim_en(stim_en));
     apt_pwm #(.PERIOD(PWM_PERIOD), .DEADTIME(PWM_DEADTIME)) u_pwm (
         .clk(clk), .rst(rst), .enable(drive_en), .update(core_done), .cmp_in(pwm_cmp), .rev_in(pwm_rev),
         .loaded(pwm_loaded), .ha(pwm_ha), .la(pwm_la), .hb(pwm_hb), .lb(pwm_lb)
     );
 
-    wire       stim_en = ctrl[2] && !core_fault && !estop_now;
     wire [3:0] onset, overrun;
     genvar k;
     generate
@@ -243,6 +244,7 @@ module apt_top #(
     end
 
     assign fault_led = core_fault;
+
 
 endmodule
 
