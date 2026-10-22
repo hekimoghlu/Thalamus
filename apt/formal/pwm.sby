@@ -1,0 +1,12 @@
+[tasks]
+prove
+[options]
+mode prove
+depth 30
+[engines]
+smtbmc z3
+[script]
+read_verilog -formal -DFORMAL apt_pwm.v
+prep -top apt_pwm
+[files]
+../rtl/apt_pwm.v

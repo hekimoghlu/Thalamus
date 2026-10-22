@@ -1,0 +1,15 @@
+[tasks]
+bmc
+prove
+[options]
+bmc: mode bmc
+bmc: depth 40
+prove: mode prove
+prove: depth 12
+[engines]
+smtbmc z3
+[script]
+read_verilog -formal -DFORMAL apt_stim.v
+prep -top apt_stim
+[files]
+../rtl/apt_stim.v
