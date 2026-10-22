@@ -93,6 +93,7 @@ core::Inputs Plant::advance(double ctrl_dt, double duty, const ReachingTask& tas
     // transport delay
     const auto lag = static_cast<std::size_t>(std::lround(p_.extra_latency_ms / 1000.0 / ctrl_dt));
     pipe_.push_back(in);
+    while (pipe_.size() > lag + 1) pipe_.pop_front();  // delay shortened: the link drains
     if (pipe_.size() <= lag) return pipe_.front();
     const core::Inputs out = pipe_.front();
     pipe_.pop_front();
@@ -101,18 +102,36 @@ core::Inputs Plant::advance(double ctrl_dt, double duty, const ReachingTask& tas
 
 RunSummary run(const core::Config& cfg, const PlantParams& pp, const ReachingTask& task,
                double seconds, std::uint64_t seed, std::vector<Sample>* trace) {
+    return run_ex(cfg, pp, task, seconds, seed, RunHooks{}, trace);
+}
+
+RunSummary run_ex(const core::Config& cfg, const PlantParams& pp, const ReachingTask& task,
+                  double seconds, std::uint64_t seed, const RunHooks& hooks,
+                  std::vector<Sample>* trace) {
     core::CoreModel m(cfg);
     Plant plant(pp, seed);
     const double dt = 1.0 / cfg.fs_hz;
     const int n = static_cast<int>(seconds / dt);
     RunSummary r{};
-    r.latency_ms = pp.extra_latency_ms;
+    r.latency_ms = pp.extra_latency_ms;  // initial; see RunHooks for a time-varying delay
     r.passivity_control = (cfg.ctrl & core::kCtrlPassivity) != 0;
+    num::Rng probe_rng(seed ^ 0x9E3779B97F4A7C15ull);
+    double cf = 0, peak_e = 0;
     double duty = 0, se = 0, sf = 0, min_e = 0, early = 0, late = 0, prev_v = 0;
     int pc = 0, spikes = 0, gated = 0;
     for (int i = 0; i < n; ++i) {
+        if (hooks.latency_ms) plant.set_extra_latency_ms(hooks.latency_ms(plant.t()));
         const auto in = plant.advance(dt, duty, task);
         const auto o = m.step(in);
+        if (hooks.supervisor) {
+            const double probe = std::max(0.0, plant.extra_latency_ms() + probe_rng.normal(0.0, hooks.probe_jitter_ms));
+            hooks.supervisor(plant.t(), probe, m);
+        }
+        {
+            const double dc = plant.x_device_mm() - fx::from_sig(o.x_cmd);
+            cf += dc * dc;
+            peak_e = std::max(peak_e, std::abs(fx::from_sig(o.energy)));
+        }
         duty = fx::from_sig(o.duty);
         const double err = plant.x_hand_mm() - task.intent_mm(plant.t());
         se += err * err;
@@ -134,6 +153,8 @@ RunSummary run(const core::Config& cfg, const PlantParams& pp, const ReachingTas
                               task.intent_mm(plant.t()), plant.force_true_N(), o});
         r.reps = o.rep_count;
     }
+    r.cmd_follow_rms_mm = std::sqrt(cf / n);
+    r.peak_abs_energy_mJ = peak_e;
     r.tracking_rms_mm = std::sqrt(se / n);
     r.interaction_rms_N = std::sqrt(sf / n);
     r.min_energy_mJ = min_e;

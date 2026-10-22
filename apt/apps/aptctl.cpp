@@ -3,6 +3,7 @@
 //   aptctl spec     [--out DIR]   the device specification: Modules E/O/M + latency budget + HIL
 //   aptctl schedule [--budget H]  Module M optimal schedules and the contact-time threshold
 //   aptctl hil      [--out DIR]   closed-loop latency sweep of the fixed-point controller
+//   aptctl adapt    [--out DIR]   certify the latency-adaptive inner-loop schedule and compare
 //   aptctl codegen  [--root DIR]  emit RTL/firmware headers from the C++ source of truth
 //   aptctl vectors  [--out DIR] [--ticks N]  golden stimulus + expected telemetry for the RTL TB
 //   aptctl decode   FILE          decode a captured UART telemetry stream to CSV on stdout
@@ -11,11 +12,13 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
+#include "apt/adapt.hpp"
 #include "apt/afferent.hpp"
 #include "apt/codegen.hpp"
 #include "apt/core_model.hpp"
@@ -259,6 +262,53 @@ int cmd_hil(const Args& a) {
     return 0;
 }
 
+// ----------------------------------------------------------------------------------- adapt
+int cmd_adapt(const Args& a) {
+    const fs::path out = a.get("out", "out/adapt");
+    fs::create_directories(out);
+    const core::DesignPoint base{};
+    const auto sched = adapt::certify_schedule(base);
+    std::printf("certified inner-gain schedule (closed-loop HIL, 3 seeds, 1.25x delay / 1.5x gain margins)\n");
+    std::printf("  delay<= ms   scale   analytic (40/tau)^2\n");
+    const auto ana = adapt::analytic_schedule(sched.edge_ms);
+    for (std::size_t i = 0; i < sched.edge_ms.size(); ++i)
+        std::printf("  %9.0f   %5.3f   %5.3f\n", sched.edge_ms[i], sched.scale[i], ana.scale[i]);
+
+    io::CsvWriter w(out / "fixed_vs_adaptive.csv",
+                    {"delay_ms", "fixed_stable", "fixed_interaction_N", "adaptive_scale", "adaptive_stable",
+                     "adaptive_interaction_N", "adaptive_cmd_follow_mm", "fixed_cmd_follow_mm", "adaptive_tracking_mm"});
+    std::printf("\n  delay   fixed gains            adaptive gains (scale)     rendered-dynamics fidelity\n");
+    for (double d : {0.0, 20.0, 40.0, 50.0, 60.0, 80.0, 100.0, 120.0, 160.0, 200.0}) {
+        const auto f = adapt::trial(base, 1.0, d, 7, 6.0);
+        const double sc = sched.lookup(d);
+        const auto g = adapt::trial(base, sc, d, 7, 6.0);
+        std::printf("  %4.0f ms %-8s %5.1f N      %-8s x%.3f  %5.1f N       cmd-follow %.2f mm (fixed %.2f)\n", d,
+                    f.stable ? "stable" : "UNSTABLE", f.summary.interaction_rms_N, g.stable ? "stable" : "UNSTABLE", sc,
+                    g.summary.interaction_rms_N, g.summary.cmd_follow_rms_mm, f.summary.cmd_follow_rms_mm);
+        w.row(std::vector<double>{d, double(f.stable), f.summary.interaction_rms_N, sc, double(g.stable),
+                                  g.summary.interaction_rms_N, g.summary.cmd_follow_rms_mm, f.summary.cmd_follow_rms_mm,
+                                  g.summary.tracking_rms_mm});
+    }
+
+    // dynamic scenario: the link degrades without warning (10 -> 120 ms at 4 s) and recovers (-> 30 ms at 12 s)
+    hil::RunHooks hk;
+    hk.latency_ms = [](double t) { return t < 4.0 ? 10.0 : (t < 12.0 ? 120.0 : 30.0); };
+    for (int adaptive = 0; adaptive < 2; ++adaptive) {
+        adapt::Supervisor sup(base, sched);
+        hk.supervisor = adaptive ? std::function<void(double, double, core::CoreModel&)>(
+                                       [&sup](double, double probe, core::CoreModel& m) { sup.on_probe(probe, m); })
+                                 : std::function<void(double, double, core::CoreModel&)>{};
+        hil::PlantParams p;
+        std::vector<hil::Sample> tr;
+        const auto r = hil::run_ex(core::Config::from_design(base), p, hil::ReachingTask{}, 18.0, 11, hk, &tr);
+        std::printf("\ndelay step 10->120->30 ms, %s: %s, min E %.1f mJ, interaction %.2f N rms%s\n",
+                    adaptive ? "adaptive" : "fixed   ", r.faulted ? "SUPERVISOR TRIPPED" : "no fault", r.min_energy_mJ,
+                    r.interaction_rms_N, adaptive ? "" : "");
+        if (adaptive) std::printf("  scale changes: %d, final scale %.3f, final estimate %.0f ms\n", sup.changes(), sup.scale(), sup.estimate_ms());
+    }
+    return 0;
+}
+
 // ----------------------------------------------------------------------------------- codegen
 int cmd_codegen(const Args& a) {
     const auto eb = EvidenceBase::load_default();
@@ -352,6 +402,7 @@ int main(int argc, char** argv) {
         if (a.cmd == "spec") return cmd_spec(a);
         if (a.cmd == "schedule") return cmd_schedule(a);
         if (a.cmd == "hil") return cmd_hil(a);
+        if (a.cmd == "adapt") return cmd_adapt(a);
         if (a.cmd == "codegen") return cmd_codegen(a);
         if (a.cmd == "vectors") return cmd_vectors(a);
         if (a.cmd == "decode") return cmd_decode(a);

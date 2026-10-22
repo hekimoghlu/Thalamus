@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "apt_adapt.h"
+#define APT_ADAPT_TABLE
+#include "apt_adapt_table.h"
 #include "apt_hal.h"
 #include "apt_link.h"
 #include "apt_params.h"
@@ -218,6 +221,63 @@ static void test_link(void)
     printf("[ ok ] link: CRC check value, SLIP escapes, corrupted frame rejected\n");
 }
 
+static void test_adapt(void)
+{
+    mock_fpga_t m;
+    apt_bus_t bus;
+    apt_adapt_t a;
+    int covered = 1, i;
+    uint32_t kp0;
+    mock_init(&m);
+    apt_bus_init(&bus, mock_xfer, &m);
+    EXPECT(apt_configure(&bus) == APT_OK);
+    apt_adapt_init(&a);
+    kp0 = m.regs[APT_REG_KP];
+    EXPECT(a.base_kp == kp0 && a.base_kd == m.regs[APT_REG_KD] && kp0 != 0u);
+
+    /* table: full gain at low delay, the certified value at the edges, flagged beyond the range */
+    EXPECT(apt_adapt_lookup(0u, &covered) == 65536u && covered);
+    EXPECT(apt_adapt_lookup(25000u, &covered) == 65536u && covered);
+    EXPECT(apt_adapt_lookup(120000u, &covered) == APT_ADAPT_SCALE_Q16[8] && covered);
+    EXPECT(apt_adapt_lookup(400000u, &covered) == APT_ADAPT_SCALE_Q16[APT_ADAPT_BINS - 1u] && !covered);
+    for (i = 1; i < (int)APT_ADAPT_BINS; ++i) EXPECT(APT_ADAPT_SCALE_Q16[i] <= APT_ADAPT_SCALE_Q16[i - 1]);
+    EXPECT(apt_adapt_scale_coef(kp0, 65536u) == kp0);
+
+    /* a healthy link changes nothing */
+    for (i = 0; i < 300; ++i) EXPECT(apt_adapt_probe(&a, &bus, 10000u, 1u) == APT_OK);
+    EXPECT(a.changes == 0u && m.regs[APT_REG_KP] == kp0);
+
+    /* the link degrades to 120 ms: the gains drop at once, to the certified scale */
+    for (i = 0; i < 200; ++i) (void)apt_adapt_probe(&a, &bus, 120000u, 1u);
+    EXPECT(a.scale_q16 == APT_ADAPT_SCALE_Q16[8]);
+    EXPECT(m.regs[APT_REG_KP] == apt_adapt_scale_coef(kp0, a.scale_q16) && m.regs[APT_REG_KP] < kp0);
+    EXPECT(!a.beyond_certified);
+
+    /* recovery is deliberate: the estimate releases slowly and the gain steps up only after the hold */
+    for (i = 0; i < 400; ++i) (void)apt_adapt_probe(&a, &bus, 10000u, 1u);
+    EXPECT(a.scale_q16 < 65536u);
+    for (i = 0; i < 4000; ++i) (void)apt_adapt_probe(&a, &bus, 10000u, 1u);
+    EXPECT(a.scale_q16 == 65536u && m.regs[APT_REG_KP] == kp0);
+
+    /* beyond the certified range it says so, and holds the smallest certified scale */
+    for (i = 0; i < 200; ++i) (void)apt_adapt_probe(&a, &bus, 400000u, 1u);
+    EXPECT(a.beyond_certified && a.scale_q16 == APT_ADAPT_SCALE_Q16[APT_ADAPT_BINS - 1u]);
+
+    /* a bus failure is reported, not swallowed */
+    m.fail_next = 1;
+    apt_adapt_init(&a);
+    EXPECT(apt_adapt_probe(&a, &bus, 10000u, 1u) == APT_OK);   /* nothing to write yet */
+    {
+        apt_status_t rc = APT_OK;
+        for (i = 0; i < 200 && rc == APT_OK; ++i) {
+            if (i == 50) m.fail_next = 1;          /* arm the failure; it lands on the first gain write */
+            rc = apt_adapt_probe(&a, &bus, 150000u, 1u);
+        }
+        EXPECT(rc == APT_ERR_BUS);
+    }
+    printf("[ ok ] adapt: certified table, instant step-down, held step-up, out-of-range flag\n");
+}
+
 int main(void)
 {
     test_configure();
@@ -227,6 +287,7 @@ int main(void)
     test_dose_ledger();
     test_policy();
     test_link();
+    test_adapt();
     printf("%d checks passed, %d failed\n", passes, failures);
     return failures ? 1 : 0;
 }

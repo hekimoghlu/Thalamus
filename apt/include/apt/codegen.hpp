@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "apt/core_model.hpp"
+#include "apt/adapt.hpp"
 #include "apt/evidence.hpp"
 #include "apt/schedule.hpp"
 
@@ -36,6 +37,7 @@ std::string verilog_csr_logic();
 std::string verilog_params(const core::Config& reset_cfg, const HardwareTiming& t);
 std::string c_regmap();
 std::string c_params(const EvidenceBase& eb, const ScheduleModel& m, const core::Config& reset_cfg);
+std::string c_adapt(const adapt::GainSchedule& g);
 std::string c_policy(const ScheduleModel& m, const ScheduleModel::Solution& s, int c_stride,
                      int b_stride);
 

@@ -40,6 +40,7 @@ add_library(aptcore
   src/link.cpp
   src/core_model.cpp
   src/plant.cpp
+  src/adapt.cpp
   src/codegen.cpp
 )
 target_include_directories(aptcore PUBLIC include)
@@ -49,7 +50,7 @@ add_executable(aptctl apps/aptctl.cpp)
 target_link_libraries(aptctl PRIVATE aptcore)
 
 # --- firmware (host build of the MCU code, tested against a register-bus mock) -------------
-add_library(aptfw fw/src/apt_hal.c fw/src/apt_link.c fw/src/apt_session.c)
+add_library(aptfw fw/src/apt_hal.c fw/src/apt_link.c fw/src/apt_session.c fw/src/apt_adapt.c)
 target_include_directories(aptfw PUBLIC fw/include)
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
   target_compile_options(aptfw PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wno-sign-conversion)
@@ -60,7 +61,7 @@ endif()
 
 # --- tests ---------------------------------------------------------------------------------
 enable_testing()
-foreach(t evidence fixed physics recovery schedule dsp neuromorphic link core_model hil)
+foreach(t evidence fixed physics recovery schedule dsp neuromorphic link core_model hil adapt)
   add_executable(test_${t} tests/test_${t}.cpp)
   target_link_libraries(test_${t} PRIVATE aptcore)
   add_test(NAME ${t} COMMAND test_${t})
