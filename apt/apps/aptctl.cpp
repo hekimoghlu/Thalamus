@@ -3,6 +3,8 @@
 //   aptctl spec     [--out DIR]   the device specification: Modules E/O/M + latency budget + HIL
 //   aptctl schedule [--budget H]  Module M optimal schedules and the contact-time threshold
 //   aptctl hil      [--out DIR]   closed-loop latency sweep of the fixed-point controller
+//   aptctl adapt    [--out DIR]   certify the latency-adaptive inner-loop schedule and compare
+//   aptctl twin     [--patients N --hours H --sessions N --weeks N] closed-loop digital twin: link delay -> sessions -> dose -> outcome
 //   aptctl codegen  [--root DIR]  emit RTL/firmware headers from the C++ source of truth
 //   aptctl vectors  [--out DIR] [--ticks N]  golden stimulus + expected telemetry for the RTL TB
 //   aptctl decode   FILE          decode a captured UART telemetry stream to CSV on stdout
@@ -11,11 +13,13 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
+#include "apt/adapt.hpp"
 #include "apt/afferent.hpp"
 #include "apt/codegen.hpp"
 #include "apt/core_model.hpp"
@@ -29,6 +33,7 @@
 #include "apt/regmap.hpp"
 #include "apt/schedule.hpp"
 #include "apt/stability.hpp"
+#include "apt/twin.hpp"
 
 using namespace apt;
 namespace fs = std::filesystem;
@@ -259,6 +264,113 @@ int cmd_hil(const Args& a) {
     return 0;
 }
 
+// ----------------------------------------------------------------------------------- adapt
+int cmd_adapt(const Args& a) {
+    const fs::path out = a.get("out", "out/adapt");
+    fs::create_directories(out);
+    const core::DesignPoint base{};
+    const auto sched = adapt::certify_schedule(base);
+    std::printf("certified inner-gain schedule (closed-loop HIL, 3 seeds, 1.25x delay / 1.5x gain margins)\n");
+    std::printf("  delay<= ms   scale   analytic (40/tau)^2\n");
+    const auto ana = adapt::analytic_schedule(sched.edge_ms);
+    for (std::size_t i = 0; i < sched.edge_ms.size(); ++i)
+        std::printf("  %9.0f   %5.3f   %5.3f\n", sched.edge_ms[i], sched.scale[i], ana.scale[i]);
+
+    io::CsvWriter w(out / "fixed_vs_adaptive.csv",
+                    {"delay_ms", "fixed_stable", "fixed_interaction_N", "adaptive_scale", "adaptive_stable",
+                     "adaptive_interaction_N", "adaptive_cmd_follow_mm", "fixed_cmd_follow_mm", "adaptive_tracking_mm"});
+    std::printf("\n  delay   fixed gains            adaptive gains (scale)     rendered-dynamics fidelity\n");
+    for (double d : {0.0, 20.0, 40.0, 50.0, 60.0, 80.0, 100.0, 120.0, 160.0, 200.0}) {
+        const auto f = adapt::trial(base, 1.0, d, 7, 6.0);
+        const double sc = sched.lookup(d);
+        const auto g = adapt::trial(base, sc, d, 7, 6.0);
+        std::printf("  %4.0f ms %-8s %5.1f N      %-8s x%.3f  %5.1f N       cmd-follow %.2f mm (fixed %.2f)\n", d,
+                    f.stable ? "stable" : "UNSTABLE", f.summary.interaction_rms_N, g.stable ? "stable" : "UNSTABLE", sc,
+                    g.summary.interaction_rms_N, g.summary.cmd_follow_rms_mm, f.summary.cmd_follow_rms_mm);
+        w.row(std::vector<double>{d, double(f.stable), f.summary.interaction_rms_N, sc, double(g.stable),
+                                  g.summary.interaction_rms_N, g.summary.cmd_follow_rms_mm, f.summary.cmd_follow_rms_mm,
+                                  g.summary.tracking_rms_mm});
+    }
+
+    // dynamic scenario: the link degrades without warning (10 -> 120 ms at 4 s) and recovers (-> 30 ms at 12 s)
+    hil::RunHooks hk;
+    hk.latency_ms = [](double t) { return t < 4.0 ? 10.0 : (t < 12.0 ? 120.0 : 30.0); };
+    for (int adaptive = 0; adaptive < 2; ++adaptive) {
+        adapt::Supervisor sup(base, sched);
+        hk.supervisor = adaptive ? std::function<void(double, double, core::CoreModel&)>(
+                                       [&sup](double, double probe, core::CoreModel& m) { sup.on_probe(probe, m); })
+                                 : std::function<void(double, double, core::CoreModel&)>{};
+        hil::PlantParams p;
+        std::vector<hil::Sample> tr;
+        const auto r = hil::run_ex(core::Config::from_design(base), p, hil::ReachingTask{}, 18.0, 11, hk, &tr);
+        std::printf("\ndelay step 10->120->30 ms, %s: %s, min E %.1f mJ, interaction %.2f N rms%s\n",
+                    adaptive ? "adaptive" : "fixed   ", r.faulted ? "SUPERVISOR TRIPPED" : "no fault", r.min_energy_mJ,
+                    r.interaction_rms_N, adaptive ? "" : "");
+        if (adaptive) std::printf("  scale changes: %d, final scale %.3f, final estimate %.0f ms\n", sup.changes(), sup.scale(), sup.estimate_ms());
+    }
+    return 0;
+}
+
+// -------------------------------------------------------------------------------------- twin
+int cmd_twin(const Args& a) {
+    const fs::path out = a.get("out", "out/twin");
+    fs::create_directories(out);
+    const int patients = std::stoi(a.get("patients", "3000"));
+    const auto eb = EvidenceBase::load_default();
+    ScheduleModel sm(eb, RecoveryParams::load_default(), SensitiveWindow::fit(eb));
+    sm.calibrate_scale(eb);
+    const auto law = LatencyLearningLaw::from_evidence(eb);
+    const core::DesignPoint base{};
+
+    twin::LinkScenario link;
+    twin::Protocol proto;
+    proto.hours_per_session = std::stod(a.get("hours", "0.5"));
+    proto.sessions_per_week = std::stoi(a.get("sessions", "5"));
+    proto.weeks = std::stoi(a.get("weeks", "12"));
+    STRUCTURAL("twin_patient_link_sigma", link.patient_sigma, "log-sd", "between-patient spread of the home-link median delay");
+    STRUCTURAL("twin_session_link_sigma", link.session_sigma, "log-sd", "session-to-session delay jitter");
+    STRUCTURAL("twin_congestion_prob", link.spike_prob, "1/session", "probability a session runs in a congested link");
+    STRUCTURAL("twin_congestion_factor", link.spike_factor, "x", "delay multiple while congested");
+    STRUCTURAL("twin_sessions_per_week", proto.sessions_per_week, "1/week", "home protocol");
+    STRUCTURAL("twin_hours_per_session", proto.hours_per_session, "h", "home protocol");
+    STRUCTURAL("twin_start_week", proto.start_week, "weeks", "programme start, near the fitted sensitive-period peak");
+    STRUCTURAL("twin_reference_latency", proto.reference_latency_ms, "ms", "learning efficiency is stated relative to this");
+
+    std::printf("measuring closed-loop behaviour of three controller policies (HIL, 5 ms grid)...\n");
+    const auto sched = adapt::certify_schedule(base);
+    const auto fixed = twin::StabilityMap::measure(base, "fixed gains", [](double) { return 1.0; }, 300.0);
+    const double cs = sched.lookup(60.0);
+    const auto conservative = twin::StabilityMap::measure(base, "fixed, conservative", [cs](double) { return cs; }, 300.0);
+    const auto adaptive = twin::StabilityMap::measure(
+        base, "adaptive (certified)", [&sched](double d) { return sched.lookup(d); }, sched.certified_max_ms());
+    std::printf("  first delay at which a session no longer completes: fixed %.0f ms, conservative(x%.2f) %.0f ms, adaptive %.0f ms\n",
+                fixed.first_failure_ms(), cs, conservative.first_failure_ms(), adaptive.first_failure_ms());
+
+    const twin::Twin tw(eb, sm, law);
+    io::CsvWriter w(out / "twin_sweep.csv", {"median_delay_ms", "policy", "sessions_completed", "effective_hours", "fm_gain",
+                                              "p_exceeds_mcid", "cmd_follow_mm", "zero_dose"});
+    std::printf("\nprogramme: %d weeks from week %d, %d x %.1f h sessions per week, %d virtual patients, reference latency %.0f ms\n",
+                proto.weeks, proto.start_week, proto.sessions_per_week, proto.hours_per_session, patients, proto.reference_latency_ms);
+    std::printf("same patients, same link draws and same noise for every policy; contrasts are between device configurations\n\n");
+    std::printf("  median     policy                  sessions  eff.hours  FM gain  P(>=MCID)  cmd-follow  no-dose\n");
+    for (double med : {10.0, 20.0, 40.0, 60.0, 100.0, 150.0, 250.0}) {
+        link.median_ms = med;
+        const auto res = tw.run({&fixed, &conservative, &adaptive}, link, proto, patients, num::kSeed + 77);
+        for (const auto& r : res) {
+            std::printf("  %4.0f ms   %-22s  %6.1f%%   %7.1f   %6.2f    %5.1f%%    %6.2f mm   %5.1f%%\n", med, r.policy.c_str(),
+                        100 * r.completed_fraction, r.mean_effective_hours, r.mean_fm_gain, 100 * r.prob_exceeds_mcid,
+                        r.mean_cmd_follow_mm, 100 * r.zero_dose_fraction);
+            w.row(std::vector<std::string>{io::fmt(med), r.policy, io::fmt(r.completed_fraction), io::fmt(r.mean_effective_hours),
+                                           io::fmt(r.mean_fm_gain), io::fmt(r.prob_exceeds_mcid), io::fmt(r.mean_cmd_follow_mm),
+                                           io::fmt(r.zero_dose_fraction)});
+        }
+        std::printf("\n");
+    }
+    std::printf("not modelled: any effect on learning of the adaptive controller's looser device-to-command tracking (no verified\n"
+                "quantity relates the two - it is reported as the cmd-follow column), and any effect of failed sessions on adherence.\n");
+    return 0;
+}
+
 // ----------------------------------------------------------------------------------- codegen
 int cmd_codegen(const Args& a) {
     const auto eb = EvidenceBase::load_default();
@@ -352,6 +464,8 @@ int main(int argc, char** argv) {
         if (a.cmd == "spec") return cmd_spec(a);
         if (a.cmd == "schedule") return cmd_schedule(a);
         if (a.cmd == "hil") return cmd_hil(a);
+        if (a.cmd == "adapt") return cmd_adapt(a);
+        if (a.cmd == "twin") return cmd_twin(a);
         if (a.cmd == "codegen") return cmd_codegen(a);
         if (a.cmd == "vectors") return cmd_vectors(a);
         if (a.cmd == "decode") return cmd_decode(a);

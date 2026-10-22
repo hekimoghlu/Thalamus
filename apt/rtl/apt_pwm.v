@@ -68,6 +68,31 @@ module apt_pwm #(
             lb <= want_lb && !hb && off_hb >= DEADTIME[15:0];
         end
     end
+
+`ifdef FORMAL
+    reg f_init = 1'b0, f_past = 1'b0, f_en = 1'b0;
+    always @(posedge clk) begin
+        f_init <= 1'b1;
+        f_past <= f_init && !rst;
+        f_en   <= enable;
+        if (!f_init) assume(rst);
+        if (f_init) begin
+            // no shoot-through, ever
+            assert(!(ha && la));
+            assert(!(hb && lb));
+            // dead-time: a gate that is on has had its complement off for at least DEADTIME cycles
+            assert(!ha || off_la >= DEADTIME[15:0]);
+            assert(!la || off_ha >= DEADTIME[15:0]);
+            assert(!hb || off_lb >= DEADTIME[15:0]);
+            assert(!lb || off_hb >= DEADTIME[15:0]);
+            assert(!ha || !la);
+            assert(!hb || !lb);
+            // the counter-complement relation: an on-gate has a zero off-counter
+        end
+        // enable low removes every gate drive on the very next cycle
+        if (f_past && !f_en) assert(!{ha, la, hb, lb});
+    end
+`endif
 endmodule
 
 `default_nettype wire

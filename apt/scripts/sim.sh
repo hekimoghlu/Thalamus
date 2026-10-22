@@ -18,6 +18,6 @@ if [ -n "${IVL_LIBDIR:-}" ]; then BFLAG=(-B "$IVL_LIBDIR"); MFLAG=(-M "$IVL_LIBD
 mkdir -p sim_build
 "$IVERILOG" "${BFLAG[@]}" -g2012 -Wall -Wno-timescale -Wno-sensitivity-entire-array -I rtl/generated -s tb_apt_top -o sim_build/tb_apt_top.vvp \
   tb/tb_apt_top.v rtl/apt_top.v rtl/apt_core.v rtl/apt_udiv.v rtl/apt_spi_adc.v rtl/apt_quad.v \
-  rtl/apt_pwm.v rtl/apt_stim.v rtl/apt_latency.v rtl/apt_spi_slave.v rtl/apt_telemetry.v rtl/apt_uart_tx.v
+  rtl/apt_pwm.v rtl/apt_stim.v rtl/apt_interlock.v rtl/apt_latency.v rtl/apt_spi_slave.v rtl/apt_telemetry.v rtl/apt_uart_tx.v
 "$VVP" "${MFLAG[@]}" -n sim_build/tb_apt_top.vvp | tee sim_build/tb_apt_top.log
 grep -q '^PASS' sim_build/tb_apt_top.log

@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <vector>
 
 #include "apt/core_model.hpp"
@@ -61,6 +62,8 @@ struct RunSummary {
     std::uint16_t reps;
     double afferent_rate_hz;
     double gated_fraction;
+    double cmd_follow_rms_mm;       // device vs the position the admittance law commanded
+    double peak_abs_energy_mJ;     // largest |port energy| (instability shows up here)
 };
 
 class Plant {
@@ -71,6 +74,8 @@ public:
     // sensor inputs the controller will see `extra_latency_ms` later.
     core::Inputs advance(double ctrl_dt, double duty, const ReachingTask& task);
 
+    void set_extra_latency_ms(double ms) { p_.extra_latency_ms = ms; }
+    double extra_latency_ms() const { return p_.extra_latency_ms; }
     double t() const { return t_; }
     double x_hand_mm() const { return 1000 * s_[2]; }
     double x_device_mm() const { return 1000 * s_[0]; }
@@ -85,6 +90,17 @@ private:
     double s_[4] = {0.03, 0, 0.03, 0};  // x_dev, v_dev, x_hand, v_hand [m, m/s]
     std::deque<core::Inputs> pipe_;
 };
+
+// Per-tick hooks: a time-varying transport delay, and a supervisor that sees the model after each
+// step together with a noisy one-way delay probe (what a heartbeat round trip would measure).
+struct RunHooks {
+    std::function<double(double t)> latency_ms;                                   // optional
+    std::function<void(double t, double probe_ms, core::CoreModel&)> supervisor;  // optional
+    double probe_jitter_ms = 1.0;
+};
+RunSummary run_ex(const core::Config& cfg, const PlantParams& pp, const ReachingTask& task,
+                  double seconds, std::uint64_t seed, const RunHooks& hooks,
+                  std::vector<Sample>* trace = nullptr);
 
 RunSummary run(const core::Config& cfg, const PlantParams& pp, const ReachingTask& task,
                double seconds, std::uint64_t seed, std::vector<Sample>* trace = nullptr);

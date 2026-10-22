@@ -1,0 +1,15 @@
+[tasks]
+prove
+[options]
+mode prove
+depth 4
+[engines]
+smtbmc z3
+[script]
+read_verilog -formal -DFORMAL apt_interlock.v apt_pwm.v apt_stim.v safety_chain.v
+prep -top safety_chain
+[files]
+../rtl/apt_interlock.v
+../rtl/apt_pwm.v
+../rtl/apt_stim.v
+safety_chain.v

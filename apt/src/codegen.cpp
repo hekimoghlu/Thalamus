@@ -1,9 +1,11 @@
 #include "apt/codegen.hpp"
 
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <sstream>
 
+#include "apt/adapt.hpp"
 #include "apt/regmap.hpp"
 
 namespace apt::codegen {
@@ -177,6 +179,21 @@ std::string c_policy(const ScheduleModel& m, const ScheduleModel::Solution& s, i
     return os.str();
 }
 
+std::string c_adapt(const adapt::GainSchedule& g) {
+    std::ostringstream os;
+    os << banner("/*", "apt_adapt_table.h - closed-loop-certified inner-gain schedule vs link delay");
+    os << "#ifndef APT_ADAPT_TABLE_H\n#define APT_ADAPT_TABLE_H\n\n#include <stdint.h>\n\n";
+    os << "#define APT_ADAPT_BINS " << g.edge_ms.size() << "u\n";
+    os << "/* certified for delays up to " << g.certified_max_ms() << " ms; scale is the factor applied to KP and KD */\n";
+    os << "#ifdef APT_ADAPT_TABLE\nstatic const uint16_t APT_ADAPT_EDGE_MS[APT_ADAPT_BINS] = {";
+    for (std::size_t i = 0; i < g.edge_ms.size(); ++i) os << (i ? ", " : "") << static_cast<int>(g.edge_ms[i]);
+    os << "};\nstatic const uint32_t APT_ADAPT_SCALE_Q16[APT_ADAPT_BINS] = {";
+    for (std::size_t i = 0; i < g.scale.size(); ++i)
+        os << (i ? ", " : "") << static_cast<std::uint32_t>(std::lround(g.scale[i] * 65536.0)) << "u";
+    os << "};\n#endif\n\n#endif\n";
+    return os.str();
+}
+
 std::vector<std::filesystem::path> emit_all(const std::filesystem::path& root, const EvidenceBase& eb) {
     const auto cfg = core::Config::from_design(core::DesignPoint{});
     ScheduleModel m(eb, RecoveryParams::load_default(), SensitiveWindow::fit(eb));
@@ -189,6 +206,7 @@ std::vector<std::filesystem::path> emit_all(const std::filesystem::path& root, c
         {root / "fw/include/apt_regmap.h", c_regmap()},
         {root / "fw/include/apt_params.h", c_params(eb, m, cfg)},
         {root / "fw/include/apt_policy.h", c_policy(m, sol, 10, 4)},
+        {root / "fw/include/apt_adapt_table.h", c_adapt(adapt::certify_schedule(core::DesignPoint{}))},
     };
     std::vector<std::filesystem::path> out;
     for (auto& [p, text] : files) {
